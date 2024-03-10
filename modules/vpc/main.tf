@@ -1,0 +1,110 @@
+# VPC 생성
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
+  tags = {
+    Name = "jykim-vpc"
+  }
+}
+
+# 퍼블릭 서브넷 생성
+resource "aws_subnet" "public" {
+  count                   = 2
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = element(var.public_subnets_cidrs, count.index)
+  availability_zone       = "ap-northeast-2${count.index == 0 ? "a" : "c"}"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "jykim-public-subnet-${count.index == 0 ? "a" : "c"}"
+  }
+}
+
+#웹용 프라이빗 서브넷 생성
+resource "aws_subnet" "private_web" {
+  count             = 2
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = element(var.private_web_subnets_cidrs, count.index)
+  availability_zone = "ap-northeast-2${count.index == 0 ? "a" : "c"}"
+  tags = {
+    Name = "jykim-private-subnet-web-${count.index == 0 ? "a" : "c"}"
+  }
+}
+
+
+# 데이터베이스용 프라이빗 서브넷 생성
+resource "aws_subnet" "private_db" {
+  count             = 2
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = element(var.private_db_subnets_cidrs, count.index)
+  availability_zone = "ap-northeast-2${count.index == 0 ? "a" : "c"}"
+  tags = {
+    Name = "jykim-private-subnet-db-${count.index == 0 ? "a" : "c"}"
+  }
+}
+
+
+
+# 인터넷 게이트웨이 생성
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "jykim-igw"
+  }
+}
+
+# 퍼블릭 라우트 테이블 생성 및 인터넷 게이트웨이 연결
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+  tags = {
+    Name = "jykim-public-rtb"
+  }
+}
+
+# 퍼블릭 라우트 테이블 연결
+resource "aws_route_table_association" "public_assoc" {
+  for_each    = { for idx, subnet in aws_subnet.public : idx => subnet }
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.public.id
+}
+
+# NAT 게이트웨이용 EIP 생성
+resource "aws_eip" "nat" {
+  vpc = true
+}
+
+# 프라이빗 서브넷을 위한 NAT 게이트웨이 생성
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public[0].id
+  tags = {
+    Name = "jykim-nat-gateway"
+  }
+}
+
+# 프라이빗 라우트 테이블 생성 및 NAT 게이트웨이 연결
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat.id
+  }
+  tags = {
+    Name = "jykim-private-rtb"
+  }
+}
+
+# 프라이빗 서브넷에 라우트 테이블 연결
+resource "aws_route_table_association" "private_web_assoc" {
+  for_each       = { for idx, subnet in aws_subnet.private_web : idx => subnet }
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_db_assoc" {
+  for_each       = { for idx, subnet in aws_subnet.private_db : idx => subnet }
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private.id
+}
