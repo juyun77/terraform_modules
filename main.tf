@@ -30,3 +30,27 @@ module "bastion" {
   allowed_cidr  = ["0.0.0.0/0"]
 }
 
+
+module "rds" {
+  source = "./modules/rds"
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"
+  db_name              = "jydb"
+  username             = "root"
+  password             = "It12345!"
+  subnet_ids           = module.my_vpc.private_db_subnet_ids
+  #vpc_security_group_ids = [module.bastion.bastion_host_sg_id]
+  bastion_security_group_id = module.bastion.bastion_host_sg_id
+  tags                 = { Name = "JyDBInstance" }
+  vpc_id        = module.my_vpc.vpc_id
+  identifier             = "jydb"
+
+}
+
+
+
+
+
