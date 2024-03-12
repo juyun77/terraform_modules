@@ -32,3 +32,9 @@ variable "allowed_cidr" {
   description = "The CIDR blocks allowed to access the bastion host"
   type        = list(string)
 }
+
+variable "root_volume_size" {
+  description = "The size of the root volume in GiB"
+  type        = number
+  default     = 8 # 기본값 8GiB
+}

@@ -6,8 +6,11 @@ resource "aws_instance" "bastion" {
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.bastion_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.jykim_ec2_instance_my_profile.name
-
   associate_public_ip_address = true
+
+  root_block_device {
+      volume_size = var.root_volume_size
+    }
 
   tags = {
     Name = "bastion"
