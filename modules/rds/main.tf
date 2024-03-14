@@ -9,7 +9,6 @@ resource "aws_db_instance" "default" {
   username                = var.username
   password                = var.password
   db_subnet_group_name    = aws_db_subnet_group.default.name
-  #vpc_security_group_ids  = var.vpc_security_group_ids
   vpc_security_group_ids  = [aws_security_group.rds.id]
   identifier              = var.identifier
   skip_final_snapshot     = true
