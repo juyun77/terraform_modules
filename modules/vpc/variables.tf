@@ -27,3 +27,23 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["ap-northeast-2a", "ap-northeast-2c"]
 }
+
+
+# 추가적으로 필요한 변수들
+variable "local_cluster_name" {
+  description = "The name of the local Kubernetes cluster"
+  type        = string
+  default     = "jykim-cluster"
+}
+
+variable "private_subnets" {
+  description = "A list of IDs for the private subnets"
+  type        = list(string)
+  default     = []
+}
+
+variable "public_subnets" {
+  description = "A list of IDs for the public subnets"
+  type        = list(string)
+  default     = []
+}

@@ -1,3 +1,10 @@
+
+locals {
+  cluster_name = "jykim-cluster"
+}
+
+
+
 # VPC 생성
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
@@ -8,36 +15,40 @@ resource "aws_vpc" "main" {
 
 # 퍼블릭 서브넷 생성
 resource "aws_subnet" "public" {
-  count                   = 2
+  count                   = length(var.public_subnets_cidrs)
   vpc_id                  = aws_vpc.main.id
   cidr_block              = element(var.public_subnets_cidrs, count.index)
-  availability_zone       = "ap-northeast-2${count.index == 0 ? "a" : "c"}"
-  map_public_ip_on_launch = true
+  availability_zone       = element(var.availability_zones, count.index)
+  map_public_ip_on_launch = trusae
   tags = {
     Name = "jykim-public-subnet-${count.index == 0 ? "a" : "c"}"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
-#웹용 프라이빗 서브넷 생성
+# 웹용 프라이빗 서브넷 생성
 resource "aws_subnet" "private_web" {
-  count             = 2
+  count             = length(var.private_web_subnets_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = element(var.private_web_subnets_cidrs, count.index)
-  availability_zone = "ap-northeast-2${count.index == 0 ? "a" : "c"}"
+  availability_zone = element(var.availability_zones, count.index)
   tags = {
     Name = "jykim-private-subnet-web-${count.index == 0 ? "a" : "c"}"
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/${local.cluster_name}" = "owned"
+    "karpenter.sh/discovery/${local.cluster_name}" = local.cluster_name
   }
 }
-
 
 # 데이터베이스용 프라이빗 서브넷 생성
 resource "aws_subnet" "private_db" {
-  count             = 2
+  count             = length(var.private_db_subnets_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = element(var.private_db_subnets_cidrs, count.index)
-  availability_zone = "ap-northeast-2${count.index == 0 ? "a" : "c"}"
+  availability_zone = element(var.availability_zones, count.index)
   tags = {
     Name = "jykim-private-subnet-db-${count.index == 0 ? "a" : "c"}"
+    // 데이터베이스 서브넷에 필요한 추가 태그가 있다면 여기에 포함시킵니다.
   }
 }
 

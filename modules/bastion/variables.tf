@@ -1,6 +1,7 @@
 variable "ami_id" {
   description = "The AMI ID to use for the bastion host"
   type        = string
+
 }
 
 variable "instance_type" {

@@ -5,10 +5,12 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.46"
     }
+
     helm = {
       source  = "hashicorp/helm"
       version = "~> 2.5"
     }
+
     kubectl = {
       source  = "gavinbunney/kubectl"
       version = "~> 1.14"
@@ -47,3 +49,4 @@ provider "kubectl" {
     args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_id]
   }
 }
+
