@@ -19,6 +19,8 @@ module "eks" {
 
   # Cluster Name Setting
   cluster_name    = local.cluster_name
+
+
   cluster_version = local.cluster_version
 
   # Cluster Endpoint Setting
@@ -31,58 +33,60 @@ module "eks" {
 
   # IRSA Enable / OIDC 구성
   enable_irsa = true
+#
+#   node_security_group_additional_rules = {
+#     ingress_nodes_karpenter_port = {
+#       description                   = "Cluster API to Node group for Karpenter webhook"
+#       protocol                      = "tcp"
+#       from_port                     = 8443
+#       to_port                       = 8443
+#       type                          = "ingress"
+#       source_cluster_security_group = true
+#     }
+#   }
+#
+#   # Tag Node Security Group
+#   node_security_group_tags = {
+#     "karpenter.sh/discovery" = local.cluster_name
+#   }
+#
+#   eks_managed_node_groups = {
+#     initial = {
+#       instance_types = ["t3.medium"]
+#       create_security_group = false
+#       create_launch_template = false     # do not remove
+#       launch_template_name = ""          # do not remove
+#
+#       min_size     = 1
+#       max_size     = 3
+#       desired_size = 1
+#
+#       iam_role_additional_policies = [
+#         # Required by Karpenter
+#         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+#       ]
+#     }
+#   }
+#
+#   # console identity mapping (AWS user)
+#   # eks configmap aws-auth에 콘솔 사용자 혹은 역할을 등록
+#   manage_aws_auth_configmap = true
+#
+#   aws_auth_users = [
+#     {
+#       userarn  = "arn:aws:iam::252340876984:user/juyun"
+#       username = "juyun"
+#       groups   = ["system:masters"]
+#     },
+#   ]
+#
+#   aws_auth_accounts = [
+#     "<AWS어카운트ID>"
+#   ]
+# }
 
-  node_security_group_additional_rules = {
-    ingress_nodes_karpenter_port = {
-      description                   = "Cluster API to Node group for Karpenter webhook"
-      protocol                      = "tcp"
-      from_port                     = 8443
-      to_port                       = 8443
-      type                          = "ingress"
-      source_cluster_security_group = true
-    }
-  }
 
-  # Tag Node Security Group
-  node_security_group_tags = {
-    "karpenter.sh/discovery" = local.cluster_name
-  }
-
-  eks_managed_node_groups = {
-    initial = {
-      instance_types = ["t3.medium"]
-      create_security_group = false
-      create_launch_template = false     # do not remove
-      launch_template_name = ""          # do not remove
-
-      min_size     = 1
-      max_size     = 3
-      desired_size = 1
-
-      iam_role_additional_policies = [
-        # Required by Karpenter
-        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-      ]
-    }
-  }
-
-  # console identity mapping (AWS user)
-  # eks configmap aws-auth에 콘솔 사용자 혹은 역할을 등록
-  manage_aws_auth_configmap = true
-
-  aws_auth_users = [
-    {
-      userarn  = "arn:aws:iam::252340876984:user/juyun"
-      username = "juyun"
-      groups   = ["system:masters"]
-    },
-  ]
-
-  aws_auth_accounts = [
-    "<AWS어카운트ID>"
-  ]
 }
-
 
 
 # // 프라이빗 서브넷 태그
